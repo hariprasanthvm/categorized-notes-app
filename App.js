@@ -1,19 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Alert } from 'react-native';
+import { NativeBaseProvider, Box, VStack, HStack, Text, Heading, Button, Input, ScrollView, Pressable, Select, TextArea, Center } from 'native-base';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Web-safe components mimicking Native Base styling
-const Center = ({ children }) => <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '16px' }}>{children}</div>;
-const Card = ({ children }) => <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', width: '100%', maxWidth: '400px' }}>{children}</div>;
-const VStack = ({ children }) => <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>{children}</div>;
-const Input = ({ placeholder, value, onChangeText, secureTextEntry }) => (
-  <input type={secureTextEntry ? 'password' : 'text'} placeholder={placeholder} value={value} onChange={(e) => onChangeText(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', width: '100%', boxSizing: 'border-box', fontSize: '15px' }} />
-);
-const Button = ({ children, onPress, variant }) => (
-  <button onClick={onPress} style={{ padding: '12px', borderRadius: '8px', backgroundColor: variant === 'ghost' ? 'transparent' : '#0ea5e9', color: variant === 'ghost' ? '#4b5563' : 'white', border: 'none', fontWeight: 'bold', cursor: 'pointer', width: '100%', fontSize: '15px' }}>{children}</button>
-);
-const Heading = ({ children }) => <h1 style={{ textAlign: 'center', color: '#0284c7', margin: 0, fontSize: '24px', fontFamily: 'sans-serif' }}>{children}</h1>;
-const Text = ({ children, style }) => <p style={{ textAlign: 'center', color: '#6b7280', margin: 0, fontFamily: 'sans-serif', ...style }}>{children}</p>;
-
-export default function App() {
+function NoteApp() {
   const [currentScreen, setCurrentScreen] = useState('LOGIN'); 
   const [categories, setCategories] = useState([]);
   const [notes, setNotes] = useState([]);
@@ -29,37 +19,71 @@ export default function App() {
   const [newNoteCatId, setNewNoteCatId] = useState('');
 
   useEffect(() => {
-    const localSavedCategories = localStorage.getItem('app_categories');
-    const localSavedNotes = localStorage.getItem('app_notes');
+    const loadData = async () => {
+      try {
+        const localSavedCategories = await AsyncStorage.getItem('app_categories');
+        const localSavedNotes = await AsyncStorage.getItem('app_notes');
 
-    if (localSavedCategories && localSavedNotes) {
-      setCategories(JSON.parse(localSavedCategories));
-      setNotes(JSON.parse(localSavedNotes));
-    } else {
-      const standardCats = [{ id: 'cat1', name: 'Work' }, { id: 'cat2', name: 'Personal' }];
-      const standardNotes = [{ id: 'n1', title: 'To-Do List', content: 'Finish the React assignment.', categoryId: 'cat1' }];
-      setCategories(standardCats);
-      setNotes(standardNotes);
-      localStorage.setItem('app_categories', JSON.stringify(standardCats));
-      localStorage.setItem('app_notes', JSON.stringify(standardNotes));
-    }
+        if (localSavedCategories && localSavedNotes) {
+          setCategories(JSON.parse(localSavedCategories));
+          setNotes(JSON.parse(localSavedNotes));
+        } else {
+          const standardCats = [{ id: 'cat1', name: 'Work' }, { id: 'cat2', name: 'Personal' }];
+          const standardNotes = [{ id: 'n1', title: 'To-Do List', content: 'Finish the React Native assignment.', categoryId: 'cat1' }];
+          setCategories(standardCats);
+          setNotes(standardNotes);
+          await AsyncStorage.setItem('app_categories', JSON.stringify(standardCats));
+          await AsyncStorage.setItem('app_notes', JSON.stringify(standardNotes));
+        }
+      } catch (error) {
+        Alert.alert("Storage Error", "Failed to load local data.");
+      }
+    };
+    loadData();
   }, []);
 
-  const saveToDeviceMemory = (updatedCats, updatedNotes) => {
+  const saveToDeviceMemory = async (updatedCats, updatedNotes) => {
     setCategories(updatedCats);
     setNotes(updatedNotes);
-    localStorage.setItem('app_categories', JSON.stringify(updatedCats));
-    localStorage.setItem('app_notes', JSON.stringify(updatedNotes));
+    await AsyncStorage.setItem('app_categories', JSON.stringify(updatedCats));
+    await AsyncStorage.setItem('app_notes', JSON.stringify(updatedNotes));
   };
 
-  const handleUserSignup = () => {
-    if (!email || !password) return alert('Please enter both email and password.');
-    setCurrentScreen('LOGIN');
+  const handleUserSignup = async () => {
+    if (!email || !password) return Alert.alert('Error', 'Please enter both email and password.');
+    
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if (!response.ok) throw new Error('Signup Failed');
+      
+      Alert.alert('Success', 'Account created successfully.');
+      setCurrentScreen('LOGIN');
+    } catch (error) {
+      Alert.alert('Auth Error', error.message);
+    }
   };
 
-  const handleUserLogin = () => {
-    if (!email || !password) return alert('Please enter both email and password.');
-    setCurrentScreen('HOME');
+  const handleUserLogin = async () => {
+    if (!email || !password) return Alert.alert('Error', 'Please enter both email and password.');
+    
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if (!response.ok) throw new Error('Invalid Credentials');
+      
+      const data = await response.json();
+      await AsyncStorage.setItem('user_token', data.token);
+      setCurrentScreen('HOME');
+    } catch (error) {
+      Alert.alert('Auth Error', error.message);
+    }
   };
 
   const executeCategoryInsertion = () => {
@@ -73,8 +97,9 @@ export default function App() {
   const executeNoteInsertion = () => {
     const finalCatId = newNoteCatId || (categories[0] ? categories[0].id : '');
     if (!newNoteTitle.trim() || !newNoteContent.trim() || !finalCatId) {
-      return alert('Missing required fields.');
+      return Alert.alert('Error', 'Missing required fields.');
     }
+    
     const updatedNotes = [...notes, { id: 'note_' + Date.now(), title: newNoteTitle, content: newNoteContent, categoryId: finalCatId }];
     saveToDeviceMemory(categories, updatedNotes);
     setNewNoteTitle('');
@@ -85,57 +110,59 @@ export default function App() {
 
   if (currentScreen === 'LOGIN') {
     return (
-      <Center>
-        <Card>
-          <VStack>
-            <Heading>Note Taking App</Heading>
-            <Text>Sign in to access your notes</Text>
-            <Input placeholder="Email Address" value={email} onChangeText={setEmail} />
+      <Center flex={1} bg="coolGray.100" px={4}>
+        <Box bg="white" p={6} rounded="xl" shadow={2} w="100%" maxW="400px">
+          <VStack space={4}>
+            <Heading textAlign="center" color="primary.600">Note Taking App</Heading>
+            <Text textAlign="center" color="coolGray.500">Sign in to access your notes</Text>
+            <Input placeholder="Email Address" value={email} onChangeText={setEmail} autoCapitalize="none" />
             <Input placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
-            <Button onPress={handleUserLogin}>Login</Button>
-            <Button onPress={() => setCurrentScreen('SIGNUP')} variant="ghost">Create Account</Button>
+            <Button onPress={handleUserLogin} colorScheme="primary">Login</Button>
+            <Button onPress={() => setCurrentScreen('SIGNUP')} variant="outline" colorScheme="primary">Create Account</Button>
           </VStack>
-        </Card>
+        </Box>
       </Center>
     );
   }
 
   if (currentScreen === 'SIGNUP') {
     return (
-      <Center>
-        <Card>
-          <VStack>
-            <Heading>Register</Heading>
-            <Text>Create a new user account</Text>
-            <Input placeholder="Email Address" value={email} onChangeText={setEmail} />
+      <Center flex={1} bg="coolGray.100" px={4}>
+        <Box bg="white" p={6} rounded="xl" shadow={2} w="100%" maxW="400px">
+          <VStack space={4}>
+            <Heading textAlign="center" color="primary.600">Register</Heading>
+            <Text textAlign="center" color="coolGray.500">Create a new user account</Text>
+            <Input placeholder="Email Address" value={email} onChangeText={setEmail} autoCapitalize="none" />
             <Input placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
-            <Button onPress={handleUserSignup}>Save Account</Button>
-            <Button onPress={() => setCurrentScreen('LOGIN')} variant="ghost">Back to Login</Button>
+            <Button onPress={handleUserSignup} colorScheme="primary">Save Account</Button>
+            <Button onPress={() => setCurrentScreen('LOGIN')} variant="ghost" colorScheme="coolGray">Back to Login</Button>
           </VStack>
-        </Card>
+        </Box>
       </Center>
     );
   }
 
   if (currentScreen === 'HOME') {
     return (
-      <div style={{ backgroundColor: '#f3f4f6', minHeight: '100vh', padding: '20px', fontFamily: 'sans-serif' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h1 style={{ margin: 0, color: '#1f2937' }}>Categories</h1>
-            <button onClick={() => setCurrentScreen('ADD_CATEGORY')} style={{ backgroundColor: '#e0f2fe', color: '#0ea5e9', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>+ Category</button>
-          </div>
-          <VStack>
+      <Box flex={1} safeArea bg="coolGray.100" p={4}>
+        <HStack justifyContent="space-between" alignItems="center" mb={6}>
+          <Heading>Categories</Heading>
+          <Button size="sm" variant="subtle" colorScheme="primary" onPress={() => setCurrentScreen('ADD_CATEGORY')}>+ Category</Button>
+        </HStack>
+        <ScrollView>
+          <VStack space={3}>
             {categories.map(cat => (
-              <div key={cat.id} onClick={() => { setSelectedCategoryId(cat.id); setCurrentScreen('CATEGORY'); }} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}>
-                <strong style={{ color: '#1f2937' }}>{cat.name}</strong>
-                <span style={{ color: '#0ea5e9', fontWeight: 'bold' }}>➔</span>
-              </div>
+              <Pressable key={cat.id} onPress={() => { setSelectedCategoryId(cat.id); setCurrentScreen('CATEGORY'); }}>
+                <Box bg="white" p={4} rounded="lg" shadow={1} flexDirection="row" justifyContent="space-between">
+                  <Text fontWeight="bold" fontSize="md" color="coolGray.800">{cat.name}</Text>
+                  <Text color="primary.500" fontWeight="bold">➔</Text>
+                </Box>
+              </Pressable>
             ))}
-            <Button onPress={() => { setNewNoteCatId(categories[0]?.id || ''); setCurrentScreen('ADD_NOTE'); }}>+ Create Note</Button>
+            <Button mt={4} colorScheme="primary" onPress={() => { setNewNoteCatId(categories[0]?.id || ''); setCurrentScreen('ADD_NOTE'); }}>+ Create Note</Button>
           </VStack>
-        </div>
-      </div>
+        </ScrollView>
+      </Box>
     );
   }
 
@@ -143,78 +170,88 @@ export default function App() {
     const targetedCat = categories.find(c => c.id === selectedCategoryId);
     const filteredNotes = notes.filter(n => n.categoryId === selectedCategoryId);
     return (
-      <div style={{ backgroundColor: '#f3f4f6', minHeight: '100vh', padding: '20px', fontFamily: 'sans-serif' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h1 style={{ margin: 0, color: '#1f2937' }}>{targetedCat?.name}</h1>
-            <button onClick={() => setCurrentScreen('HOME')} style={{ backgroundColor: 'transparent', color: '#6b7280', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>← Back</button>
-          </div>
+      <Box flex={1} safeArea bg="coolGray.100" p={4}>
+        <VStack space={4} flex={1}>
+          <HStack justifyContent="space-between" alignItems="center">
+            <Heading>{targetedCat?.name}</Heading>
+            <Button size="sm" variant="ghost" colorScheme="coolGray" onPress={() => setCurrentScreen('HOME')}>← Back</Button>
+          </HStack>
           {filteredNotes.length === 0 ? (
-            <Text style={{ marginTop: '40px' }}>No notes in this category.</Text>
+            <Center mt={10}><Text color="coolGray.400">No notes in this category.</Text></Center>
           ) : (
-            <VStack>
-              {filteredNotes.map(note => (
-                <div key={note.id} onClick={() => { setSelectedNoteId(note.id); setCurrentScreen('NOTES'); }} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
-                  <strong style={{ color: '#1f2937' }}>{note.title}</strong>
-                </div>
-              ))}
-            </VStack>
+            <ScrollView>
+              <VStack space={3}>
+                {filteredNotes.map(note => (
+                  <Pressable key={note.id} onPress={() => { setSelectedNoteId(note.id); setCurrentScreen('NOTES'); }}>
+                    <Box bg="white" p={4} rounded="lg" shadow={1}>
+                      <Text fontWeight="bold" fontSize="md" color="coolGray.800">{note.title}</Text>
+                    </Box>
+                  </Pressable>
+                ))}
+              </VStack>
+            </ScrollView>
           )}
-        </div>
-      </div>
+        </VStack>
+      </Box>
     );
   }
 
   if (currentScreen === 'NOTES') {
     const activeNote = notes.find(n => n.id === selectedNoteId);
     return (
-      <div style={{ backgroundColor: '#f3f4f6', minHeight: '100vh', padding: '20px', fontFamily: 'sans-serif' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <Card style={{ maxWidth: '100%' }}>
-            <VStack>
-              <h2 style={{ margin: 0, color: '#1f2937' }}>{activeNote?.title}</h2>
-              <p style={{ color: '#4b5563', lineHeight: '1.6' }}>{activeNote?.content}</p>
-              <Button onPress={() => setCurrentScreen('CATEGORY')} variant="ghost">Close Note</Button>
-            </VStack>
-          </Card>
-        </div>
-      </div>
+      <Box flex={1} safeArea bg="coolGray.100" p={4}>
+        <Box bg="white" p={6} rounded="xl" shadow={2}>
+          <VStack space={4}>
+            <Heading size="md">{activeNote?.title}</Heading>
+            <Text color="coolGray.600" fontSize="md" lineHeight="lg">{activeNote?.content}</Text>
+            <Button mt={4} onPress={() => setCurrentScreen('CATEGORY')} variant="outline" colorScheme="coolGray">Close Note</Button>
+          </VStack>
+        </Box>
+      </Box>
     );
   }
 
   if (currentScreen === 'ADD_CATEGORY') {
     return (
-      <Center>
-        <Card>
-          <VStack>
+      <Center flex={1} safeArea bg="coolGray.100" px={4}>
+        <Box bg="white" p={6} rounded="xl" shadow={2} w="100%" maxW="400px">
+          <VStack space={4}>
             <Heading>New Category</Heading>
             <Input placeholder="Category Name" value={newCategoryName} onChangeText={setNewCategoryName} />
-            <Button onPress={executeCategoryInsertion}>Save Category</Button>
-            <Button onPress={() => setCurrentScreen('HOME')} variant="ghost">Cancel</Button>
+            <Button onPress={executeCategoryInsertion} colorScheme="primary">Save Category</Button>
+            <Button variant="ghost" colorScheme="coolGray" onPress={() => setCurrentScreen('HOME')}>Cancel</Button>
           </VStack>
-        </Card>
+        </Box>
       </Center>
     );
   }
 
   if (currentScreen === 'ADD_NOTE') {
     return (
-      <Center>
-        <Card>
-          <VStack>
+      <Center flex={1} safeArea bg="coolGray.100" px={4}>
+        <Box bg="white" p={6} rounded="xl" shadow={2} w="100%" maxW="400px">
+          <VStack space={4}>
             <Heading>New Note</Heading>
             <Input placeholder="Note Title" value={newNoteTitle} onChangeText={setNewNoteTitle} />
-            <textarea placeholder="Start writing..." value={newNoteContent} onChange={(e) => setNewNoteContent(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', width: '100%', boxSizing: 'border-box', height: '100px', fontFamily: 'sans-serif' }} />
-            <select value={newNoteCatId} onChange={(e) => setNewNoteCatId(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', width: '100%', boxSizing: 'border-box' }}>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-            <Button onPress={executeNoteInsertion}>Save Note</Button>
-            <Button onPress={() => setCurrentScreen('HOME')} variant="ghost">Cancel</Button>
+            <TextArea placeholder="Start writing..." value={newNoteContent} onChangeText={setNewNoteContent} h={32} />
+            <Select selectedValue={newNoteCatId} minWidth="200" placeholder="Choose Category" onValueChange={itemValue => setNewNoteCatId(itemValue)}>
+              {categories.map(c => <Select.Item key={c.id} label={c.name} value={c.id} />)}
+            </Select>
+            <Button onPress={executeNoteInsertion} colorScheme="primary">Save Note</Button>
+            <Button variant="ghost" colorScheme="coolGray" onPress={() => setCurrentScreen('HOME')}>Cancel</Button>
           </VStack>
-        </Card>
+        </Box>
       </Center>
     );
   }
 
   return null;
+}
+
+export default function App() {
+  return (
+    <NativeBaseProvider>
+      <NoteApp />
+    </NativeBaseProvider>
+  );
 }
