@@ -1,31 +1,31 @@
 import React, { useState, useEffect } from 'react';
 
 const Box = ({ children, style, ...props }) => (
-  <div style={{ padding: '24px', borderRadius: '12px', backgroundColor: '#ffffff', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', ...style }} {...props}>
+  <div style={{ padding: '24px', borderRadius: '16px', backgroundColor: '#ffffff', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.05)', ...style }} {...props}>
     {children}
   </div>
 );
 
 const VStack = ({ children, style }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', ...style }}>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', ...style }}>
     {children}
   </div>
 );
 
 const HStack = ({ children, style }) => (
-  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px', ...style }}>
+  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '16px', ...style }}>
     {children}
   </div>
 );
 
 const Text = ({ children, style }) => (
-  <span style={{ color: '#4B5563', fontSize: '14px', fontFamily: 'system-ui', ...style }}>
+  <span style={{ color: '#4B5563', fontSize: '15px', fontFamily: 'system-ui, sans-serif', lineHeight: '1.5', ...style }}>
     {children}
   </span>
 );
 
 const Heading = ({ children, style }) => (
-  <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', color: '#111827', letterSpacing: '-0.5px', fontFamily: 'system-ui', ...style }}>
+  <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '800', color: '#111827', letterSpacing: '-0.5px', fontFamily: 'system-ui, sans-serif', ...style }}>
     {children}
   </h2>
 );
@@ -34,15 +34,16 @@ const Button = ({ children, onPress, colorScheme = 'primary', style }) => (
   <button 
     onClick={onPress} 
     style={{ 
-      padding: '12px 16px', 
-      borderRadius: '8px', 
+      padding: '14px 24px', 
+      borderRadius: '12px', 
       border: 'none', 
-      background: colorScheme === 'primary' ? '#4F46E5' : '#F3F4F6', 
+      background: colorScheme === 'primary' ? '#10B981' : '#F3F4F6', 
       color: colorScheme === 'primary' ? '#ffffff' : '#374151', 
-      fontWeight: '600', 
-      fontSize: '14px',
+      fontWeight: '700', 
+      fontSize: '15px',
       cursor: 'pointer', 
-      transition: 'background 0.2s',
+      transition: 'all 0.2s ease',
+      boxShadow: colorScheme === 'primary' ? '0 4px 6px -1px rgba(16, 185, 129, 0.2)' : 'none',
       ...style 
     }}
   >
@@ -57,13 +58,14 @@ const Input = ({ placeholder, value, onChangeText, secureTextEntry, style }) => 
     value={value} 
     onChange={(e) => onChangeText(e.target.value)} 
     style={{ 
-      padding: '12px', 
-      borderRadius: '8px', 
-      border: '1px solid #D1D5DB', 
+      padding: '14px 16px', 
+      borderRadius: '12px', 
+      border: '1px solid #E5E7EB', 
       backgroundColor: '#F9FAFB',
       fontSize: '15px', 
       color: '#111827',
       outline: 'none',
+      transition: 'border-color 0.2s',
       ...style 
     }} 
   />
@@ -92,8 +94,8 @@ export default function App() {
       setCategories(JSON.parse(localSavedCategories));
       setNotes(JSON.parse(localSavedNotes));
     } else {
-      const standardCats = [{ id: 'cat1', name: 'Work' }, { id: 'cat2', name: 'Personal' }];
-      const standardNotes = [{ id: 'n1', title: 'Verify Pipeline', content: 'Ensure all folders are clean.', categoryId: 'cat1' }];
+      const standardCats = [{ id: 'cat1', name: 'Main Course' }, { id: 'cat2', name: 'Desserts' }];
+      const standardNotes = [{ id: 'n1', title: 'Signature Dish Recipe', content: 'Blend core spices evenly before simmering over medium flame.', categoryId: 'cat1' }];
       setCategories(standardCats);
       setNotes(standardNotes);
       localStorage.setItem('device_categories', JSON.stringify(standardCats));
@@ -141,139 +143,201 @@ export default function App() {
   };
 
   return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', backgroundColor: '#F3F4F6', minHeight: '100vh', padding: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <div style={{ width: '100%', maxWidth: '400px', background: '#111827', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '8px solid #1F2937' }}>
-        
-        <div style={{ background: '#1F2937', padding: '12px 20px', color: '#9CA3AF', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600' }}>
-          <span>LTE Connection</span>
-          <span>9:41 AM</span>
+    <div style={{ fontFamily: 'system-ui, sans-serif', backgroundColor: '#F9FAFB', minHeight: '100vh', color: '#111827' }}>
+      
+      {/* Universal App Top Navigation Bar */}
+      <header style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #F3F4F6', padding: '16px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => currentScreen !== 'LOGIN' && currentScreen !== 'SIGNUP' && setCurrentScreen('HOME')}>
+          <span style={{ fontSize: '24px' }}>🍳</span>
+          <span style={{ fontWeight: '800', fontSize: '20px', color: '#10B981', letterSpacing: '-0.5px' }}>ChefDeck</span>
         </div>
+        {currentScreen !== 'LOGIN' && currentScreen !== 'SIGNUP' && (
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <Button colorScheme="secondary" style={{ padding: '8px 16px', fontSize: '13px', borderRadius: '8px' }} onPress={() => setCurrentScreen('LOGIN')}>Sign Out</Button>
+          </div>
+        )}
+      </header>
 
+      {/* Main Content Layout Engine */}
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
+        
         {currentScreen === 'LOGIN' && (
-          <Box style={{ margin: '16px' }}>
-            <VStack>
-              <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                <Heading style={{ marginBottom: '6px' }}>Welcome Back</Heading>
-                <Text style={{ fontWeight: '600', color: '#4F46E5', display: 'block', fontSize: '15px' }}>Note Taking App</Text>
-              </div>
-              <Text style={{ textAlign: 'center', marginBottom: '8px', color: '#6B7280' }}>Sign in to access your secure deck</Text>
-              
-              <Input placeholder="Email Address" value={email} onChangeText={setEmail} />
-              <Input placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
-              <Button onPress={handleUserLogin}>Login</Button>
-              <Button colorScheme="secondary" onPress={() => setCurrentScreen('SIGNUP')}>Create Account</Button>
-            </VStack>
-          </Box>
+          <div style={{ maxWidth: '440px', margin: '40px auto' }}>
+            <Box>
+              <VStack>
+                <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                  <Heading style={{ marginBottom: '8px' }}>Welcome Chef</Heading>
+                  <Text style={{ fontWeight: '600', color: '#10B981', display: 'block', fontSize: '16px' }}>Kitchen Management Portal</Text>
+                </div>
+                <Text style={{ textAlign: 'center', marginBottom: '8px', color: '#6B7280' }}>Sign in to manage recipes, menu items, and kitchen logs.</Text>
+                
+                <Input placeholder="Email Address" value={email} onChangeText={setEmail} />
+                <Input placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
+                <Button onPress={handleUserLogin}>Login to Kitchen</Button>
+                <Button colorScheme="secondary" onPress={() => setCurrentScreen('SIGNUP')}>Create Manager Account</Button>
+              </VStack>
+            </Box>
+          </div>
         )}
 
         {currentScreen === 'SIGNUP' && (
-          <Box style={{ margin: '16px' }}>
-            <VStack>
-              <Heading style={{ textAlign: 'center', marginBottom: '4px' }}>Register</Heading>
-              <Text style={{ textAlign: 'center', marginBottom: '12px', color: '#6B7280' }}>Create a local sandbox storage file</Text>
-              <Input placeholder="Email Address" value={email} onChangeText={setEmail} />
-              <Input placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
-              <Button onPress={handleUserSignup}>Save Account</Button>
-              <Button colorScheme="secondary" onPress={() => setCurrentScreen('LOGIN')}>Back to Login</Button>
-            </VStack>
-          </Box>
+          <div style={{ maxWidth: '440px', margin: '40px auto' }}>
+            <Box>
+              <VStack>
+                <Heading style={{ textAlign: 'center', marginBottom: '4px' }}>Register Station</Heading>
+                <Text style={{ textAlign: 'center', marginBottom: '12px', color: '#6B7280' }}>Setup an isolated local kitchen database file.</Text>
+                <Input placeholder="Email Address" value={email} onChangeText={setEmail} />
+                <Input placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
+                <Button onPress={handleUserSignup}>Save Account</Button>
+                <Button colorScheme="secondary" onPress={() => setCurrentScreen('LOGIN')}>Back to Login</Button>
+              </VStack>
+            </Box>
+          </div>
         )}
 
         {currentScreen === 'HOME' && (
-          <Box style={{ margin: '16px' }}>
-            <VStack>
-              <HStack style={{ justifyContent: 'space-between', marginBottom: '8px' }}>
+          <VStack style={{ gap: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
                 <Heading>Your Notes</Heading>
-                <Button style={{ padding: '8px 12px', fontSize: '12px' }} colorScheme="secondary" onPress={() => setCurrentScreen('ADD_CATEGORY')}>+ Folder</Button>
-              </HStack>
-              
-              {categories.map(cat => (
-                <div key={cat.id} onClick={() => { setSelectedCategoryId(cat.id); setCurrentScreen('CATEGORY'); }} style={{ padding: '16px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ fontWeight: '700', color: '#1F2937' }}>{cat.name}</Text>
-                  <Text style={{ color: '#4F46E5', fontWeight: 'bold' }}>➔</Text>
-                </div>
-              ))}
-              <Button style={{ marginTop: '8px' }} onPress={() => { setNewNoteCatId(categories[0]?.id || ''); setCurrentScreen('ADD_NOTE'); }}>+ Create Note</Button>
-            </VStack>
-          </Box>
+                <Text style={{ color: '#6B7280' }}>Manage menu clusters and culinary specifications.</Text>
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <Button colorScheme="secondary" onPress={() => setCurrentScreen('ADD_CATEGORY')}>+ New Category</Button>
+                <Button onPress={() => { setNewNoteCatId(categories[0]?.id || ''); setCurrentScreen('ADD_NOTE'); }}>+ Add Item Note</Button>
+              </div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+              {categories.map(cat => {
+                const count = notes.filter(n => n.categoryId === cat.id).length;
+                return (
+                  <div 
+                    key={cat.id} 
+                    onClick={() => { setSelectedCategoryId(cat.id); setCurrentScreen('CATEGORY'); }} 
+                    style={{ padding: '24px', backgroundColor: '#ffffff', border: '1px solid #E5E7EB', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '100px' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#E5E7EB'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    <Text style={{ fontWeight: '700', color: '#1F2937', fontSize: '18px' }}>{cat.name}</Text>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
+                      <span style={{ backgroundColor: '#E6F4EA', color: '#137333', fontSize: '12px', fontWeight: '700', padding: '4px 10px', borderRadius: '20px' }}>
+                        {count} {count === 1 ? 'item' : 'items'}
+                      </span>
+                      <Text style={{ color: '#10B981', fontWeight: 'bold' }}>View ➔</Text>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </VStack>
         )}
 
         {currentScreen === 'CATEGORY' && (() => {
           const targetedCat = categories.find(c => c.id === selectedCategoryId);
           const filteredNotes = notes.filter(n => n.categoryId === selectedCategoryId);
           return (
-            <Box style={{ margin: '16px' }}>
-              <VStack>
-                <Heading>{targetedCat?.name}</Heading>
-                <Button style={{ alignSelf: 'flex-start', padding: '6px 12px', fontSize: '12px' }} colorScheme="secondary" onPress={() => setCurrentScreen('HOME')}>← Back</Button>
-                
-                {filteredNotes.length === 0 ? (
-                  <Text style={{ textAlign: 'center', padding: '32px 0', color: '#9CA3AF' }}>No notes in this folder yet.</Text>
-                ) : (
-                  filteredNotes.map(note => (
-                    <div key={note.id} onClick={() => { setSelectedNoteId(note.id); setCurrentScreen('NOTES'); }} style={{ padding: '14px 16px', background: '#F3F4F6', borderRadius: '8px', cursor: 'pointer' }}>
-                      <Text style={{ fontWeight: '600', color: '#1F2937', display: 'block' }}>{note.title}</Text>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <Box>
+                <VStack style={{ gap: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #F3F4F6', paddingBottom: '16px' }}>
+                    <Heading>{targetedCat?.name}</Heading>
+                    <Button colorScheme="secondary" style={{ padding: '8px 16px', fontSize: '13px' }} onPress={() => setCurrentScreen('HOME')}>← Back to Overview</Button>
+                  </div>
+                  
+                  {filteredNotes.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '48px 0' }}>
+                      <span style={{ fontSize: '32px', display: 'block', marginBottom: '12px' }}>🍽️</span>
+                      <Text style={{ color: '#9CA3AF' }}>No culinary logs saved in this category yet.</Text>
                     </div>
-                  ))
-                )}
-              </VStack>
-            </Box>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {filteredNotes.map(note => (
+                        <div 
+                          key={note.id} 
+                          onClick={() => { setSelectedNoteId(note.id); setCurrentScreen('NOTES'); }} 
+                          style={{ padding: '16px 20px', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s' }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#F3F4F6'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = '#F9FAFB'}
+                        >
+                          <Text style={{ fontWeight: '600', color: '#1F2937' }}>{note.title}</Text>
+                          <Text style={{ color: '#9CA3AF' }}>Read entry ➔</Text>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </VStack>
+              </Box>
+            </div>
           );
         })()}
 
         {currentScreen === 'NOTES' && (() => {
           const activeNote = notes.find(n => n.id === selectedNoteId);
           return (
-            <Box style={{ margin: '16px' }}>
-              <VStack>
-                <Heading>{activeNote?.title}</Heading>
-                <div style={{ minHeight: '120px', lineHeight: '1.6' }}>
-                  <Text>{activeNote?.content}</Text>
-                </div>
-                <Button onPress={() => setCurrentScreen('CATEGORY')}>Close Note</Button>
-              </VStack>
-            </Box>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <Box>
+                <VStack style={{ gap: '24px' }}>
+                  <Heading style={{ borderBottom: '1px solid #F3F4F6', paddingBottom: '16px' }}>{activeNote?.title}</Heading>
+                  <div style={{ minHeight: '160px', padding: '8px 0' }}>
+                    <p style={{ margin: 0, color: '#4B5563', fontSize: '16px', lineHeight: '1.7', whiteSpace: 'pre-wrap', fontFamily: 'system-ui, sans-serif' }}>
+                      {activeNote?.content}
+                    </p>
+                  </div>
+                  <Button style={{ alignSelf: 'flex-start' }} onPress={() => setCurrentScreen('CATEGORY')}>Close Details</Button>
+                </VStack>
+              </Box>
+            </div>
           );
         })()}
 
         {currentScreen === 'ADD_CATEGORY' && (
-          <Box style={{ margin: '16px' }}>
-            <VStack>
-              <Heading>New Folder</Heading>
-              <Input placeholder="e.g. Invoices, Recipes" value={newCategoryName} onChangeText={setNewCategoryName} />
-              <Button onPress={executeCategoryInsertion}>Create Folder</Button>
-              <Button colorScheme="secondary" onPress={() => setCurrentScreen('HOME')}>Cancel</Button>
-            </VStack>
-          </Box>
+          <div style={{ maxWidth: '540px', margin: '0 auto' }}>
+            <Box>
+              <VStack>
+                <Heading>Create Category Cluster</Heading>
+                <Text style={{ color: '#6B7280', marginTop: '-8px', marginBottom: '4px' }}>Group your kitchen logs (e.g., Appetizers, Beverages, Invoices).</Text>
+                <Input placeholder="Category Cluster Name" value={newCategoryName} onChangeText={setNewCategoryName} />
+                <Button onPress={executeCategoryInsertion}>Commit Category</Button>
+                <Button colorScheme="secondary" onPress={() => setCurrentScreen('HOME')}>Cancel</Button>
+              </VStack>
+            </Box>
+          </div>
         )}
 
         {currentScreen === 'ADD_NOTE' && (
-          <Box style={{ margin: '16px' }}>
-            <VStack>
-              <Heading>New Note</Heading>
-              <Input placeholder="Note Title" value={newNoteTitle} onChangeText={setNewNoteTitle} />
-              <textarea 
-                placeholder="Start writing..." 
-                value={newNoteContent} 
-                onChange={(e) => setNewNoteContent(e.target.value)} 
-                style={{ padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', fontSize: '15px', color: '#111827', outline: 'none', height: '120px', fontFamily: 'inherit', resize: 'none' }} 
-              />
-              
-              <select 
-                value={newNoteCatId} 
-                onChange={(e) => setNewNoteCatId(e.target.value)} 
-                style={{ padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', fontSize: '15px', color: '#111827', outline: 'none' }}
-              >
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+          <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+            <Box>
+              <VStack>
+                <Heading>Log New Specification Entry</Heading>
+                <Input placeholder="Entry Title (e.g., Spicy Tacos Spec sheet)" value={newNoteTitle} onChangeText={setNewNoteTitle} />
+                
+                <textarea 
+                  placeholder="Type down ingredient measurements, workflow, prep details..." 
+                  value={newNoteContent} 
+                  onChange={(e) => setNewNoteContent(e.target.value)} 
+                  style={{ padding: '14px', borderRadius: '12px', border: '1px solid #E5E7EB', backgroundColor: '#F9FAFB', fontSize: '15px', color: '#111827', outline: 'none', height: '160px', fontFamily: 'inherit', resize: 'none', lineHeight: '1.5' }} 
+                />
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: '600', color: '#4B5563' }}>Select Destined Category Portfolio:</label>
+                  <select 
+                    value={newNoteCatId} 
+                    onChange={(e) => setNewNoteCatId(e.target.value)} 
+                    style={{ padding: '14px', borderRadius: '12px', border: '1px solid #E5E7EB', backgroundColor: '#F9FAFB', fontSize: '15px', color: '#111827', outline: 'none', cursor: 'pointer' }}
+                  >
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
 
-              <Button onPress={executeNoteInsertion}>Save Note</Button>
-              <Button colorScheme="secondary" onPress={() => setCurrentScreen('HOME')}>Cancel</Button>
-            </VStack>
-          </Box>
+                <Button onPress={executeNoteInsertion}>Save Specification Sheet</Button>
+                <Button colorScheme="secondary" onPress={() => setCurrentScreen('HOME')}>Cancel</Button>
+              </VStack>
+            </Box>
+          </div>
         )}
 
-      </div>
+      </main>
     </div>
   );
 }
