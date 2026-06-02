@@ -1,4 +1,4 @@
-The Classified Notes Application is a comprehensive, cross-platform notes app developed with clear category separation in mind. It features a reliable server-side authentication API alongside an offline-first mobile interface that employs a Single Source of Truth framework.
+The Categorized Notes Application is a comprehensive, cross-platform notes app developed with clear category separation in mind. It features a reliable server-side authentication API alongside an offline-first mobile interface that employs a Single Source of Truth framework.
 
 Regarding its technology stack, the frontend is built using React and utilizes a simulated Native Base layout engine. The server-side operations are powered by Node.js along with the Express framework. For data persistence, the app uses HTML5 LocalStorage, which safely encapsulates data operations to ensure seamless synchronization across device memory.
 
