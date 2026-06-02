@@ -1,5 +1,8 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 
 const globalUsersDatabase = [];
@@ -36,7 +39,8 @@ app.get('/api/categories', (req, res) => res.json(globalCategoriesDatabase));
 app.post('/api/categories', (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
-  const newCat = { id: 'cat' + Date.now(), name };
+  
+  const newCat = { id: 'cat_' + Date.now(), name };
   globalCategoriesDatabase.push(newCat);
   res.status(201).json(newCat);
 });
@@ -45,6 +49,10 @@ app.get('/api/notes', (req, res) => res.json(globalNotesDatabase));
 
 app.post('/api/notes', (req, res) => {
   const { title, content, categoryId } = req.body;
+  if (!title || !content || !categoryId) {
+    return res.status(400).json({ error: 'Title, content, and categoryId are required' });
+  }
+
   const newNote = { id: 'note_' + Date.now(), title, content, categoryId };
   globalNotesDatabase.push(newNote);
   res.status(201).json(newNote);
